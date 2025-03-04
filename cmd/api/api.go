@@ -5,16 +5,26 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/JerryLegend254/CollabGo/internal/store"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 )
 
 type application struct {
 	config config
+	store  store.Storage
 }
 
 type config struct {
 	addr string
+	db   dbConfig
+}
+
+type dbConfig struct {
+	addr           string
+	maxOpenConns   int
+	maxIdleConns   int
+	maxIdleTimeout string
 }
 
 var (
@@ -46,10 +56,14 @@ func hello(c echo.Context) error {
 
 func (app *application) mount() http.Handler {
 	e := echo.New()
+
 	r := e.Group("/v1")
 
 	r.GET("/ping", app.pingHandler)
 	r.GET("/ws", hello)
+
+	playlistsRoutes := r.Group("/playlists")
+	playlistsRoutes.POST("", app.createPlaylistHandler)
 
 	return e
 }
