@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/lib/pq v1.10.9
+	golang.org/x/oauth2 v0.28.0
 )
 
 require (

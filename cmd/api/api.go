@@ -5,19 +5,23 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/JerryLegend254/CollabGo/internal/auth"
 	"github.com/JerryLegend254/CollabGo/internal/store"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/oauth2"
 )
 
 type application struct {
 	config config
 	store  store.Storage
+	auth   auth.Authenticator
 }
 
 type config struct {
 	addr string
 	db   dbConfig
+	auth authConfig
 }
 
 type dbConfig struct {
@@ -25,6 +29,15 @@ type dbConfig struct {
 	maxOpenConns   int
 	maxIdleConns   int
 	maxIdleTimeout string
+}
+
+type authConfig struct {
+	oauth oauthConfig
+}
+
+type oauthConfig struct {
+	config *oauth2.Config
+	state  string
 }
 
 var (
@@ -61,6 +74,11 @@ func (app *application) mount() http.Handler {
 
 	r.GET("/ping", app.pingHandler)
 	r.GET("/ws", hello)
+
+	authentication := r.Group("/authentication")
+
+	authentication.GET("/login/spotify", app.handleSpotifyLoginHandler)
+	authentication.GET("/callback/spotify", app.handleCallbackHandler)
 
 	playlistsRoutes := r.Group("/playlists")
 	playlistsRoutes.POST("", app.createPlaylistHandler)
