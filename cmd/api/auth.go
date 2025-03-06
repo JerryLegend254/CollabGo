@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/JerryLegend254/CollabGo/internal/auth"
@@ -28,7 +27,7 @@ func (app *application) handleCallbackHandler(c echo.Context) error {
 	token, err := app.config.auth.oauth.config.Exchange(context.Background(), code)
 	if err != nil {
 		http.Error(c.Response().Writer, "Failed to exchange token", http.StatusInternalServerError)
-		log.Println("Token exchange error:", err)
+		app.logger.Error("Token exchange error:", err)
 		return errors.New("Failed to exchange token")
 	}
 
@@ -36,7 +35,7 @@ func (app *application) handleCallbackHandler(c echo.Context) error {
 	userInfo, err := auth.GetSpotifyUserInfo(client)
 	if err != nil {
 		http.Error(c.Response().Writer, "Failed to get user info", http.StatusInternalServerError)
-		log.Println("User info error:", err)
+		app.logger.Error("User info error:", err)
 		return errors.New("Failed to get user info")
 	}
 	fmt.Fprintf(c.Response().Writer, "Logged in successfully! User: %s\n", userInfo)

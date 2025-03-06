@@ -1,11 +1,10 @@
 package main
 
 import (
-	"log"
-
 	"github.com/JerryLegend254/CollabGo/internal/auth"
 	"github.com/JerryLegend254/CollabGo/internal/db"
 	"github.com/JerryLegend254/CollabGo/internal/env"
+	"github.com/JerryLegend254/CollabGo/internal/logger"
 	"github.com/JerryLegend254/CollabGo/internal/store"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/spotify"
@@ -35,11 +34,17 @@ func main() {
 		},
 	}
 
+	// Logger setup
+	logger := logger.NewLogger()
+
+	defer logger.Sync()
+
 	// Database
 	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConns, cfg.db.maxIdleConns, cfg.db.maxIdleTimeout)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
+	logger.Info("Database connection successful")
 
 	defer db.Close()
 	store := store.NewStorage(db)
@@ -49,11 +54,12 @@ func main() {
 		config: cfg,
 		store:  store,
 		auth:   authenticator,
+		logger: logger,
 	}
 
 	mux := app.mount()
 
-	log.Printf("server listening at %s", app.config.addr)
-	log.Fatal(app.run(mux))
+	logger.Infof("server listening at %s", app.config.addr)
+	logger.Fatal(app.run(mux))
 
 }
