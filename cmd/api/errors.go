@@ -26,3 +26,8 @@ func (app *application) badRequest(c echo.Context, err error) error {
 	app.logger.Warnw("bad request", "error", err.Error(), "method", c.Request().Method, "path", c.Request().URL.Path)
 	return writeJSONError(c, http.StatusBadRequest, err.Error())
 }
+
+func (app *application) unauthorized(c echo.Context, err error) error {
+	app.logger.Errorw("unauthorized", "method", c.Request().Method, "path", c.Request().URL.Path, "error", err.Error())
+	return writeJSONError(c, http.StatusUnauthorized, "unauthorized")
+}

@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/JerryLegend254/CollabGo/internal/auth"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -31,14 +31,19 @@ func (app *application) handleCallbackHandler(c echo.Context) error {
 		return errors.New("Failed to exchange token")
 	}
 
-	client := app.config.auth.oauth.config.Client(context.Background(), token)
-	userInfo, err := auth.GetSpotifyUserInfo(client)
-	if err != nil {
-		http.Error(c.Response().Writer, "Failed to get user info", http.StatusInternalServerError)
-		app.logger.Error("User info error:", err)
-		return errors.New("Failed to get user info")
+	claims := jwt.MapClaims{
+		"access_token":  token.AccessToken,
+		"refresh_token": token.RefreshToken,
+		"exp":           token.Expiry.Unix(),
+		"iat":           time.Now().Unix(),
+		"iss":           app.config.auth.token.iss,
+		"aud":           app.config.auth.token.iss,
 	}
-	fmt.Fprintf(c.Response().Writer, "Logged in successfully! User: %s\n", userInfo)
 
-	return nil
+	jwtToken, err := app.auth.JWT.GenerateToken(claims)
+	if err != nil {
+		return app.internalServerError(c, err)
+	}
+
+	return app.jsonResponse(c, http.StatusOK, jwtToken)
 }

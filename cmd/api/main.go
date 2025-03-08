@@ -31,6 +31,10 @@ func main() {
 				},
 				state: auth.GenerateRandomState(),
 			},
+			token: tokenConfig{
+				secret: env.GetString("TOKEN_SECRET", "secret"),
+				iss:    "collabgo",
+			},
 		},
 	}
 
@@ -49,7 +53,9 @@ func main() {
 	defer db.Close()
 	store := store.NewStorage(db)
 
-	authenticator := auth.NewOAuthAuthenticator(cfg.auth.oauth.config, cfg.auth.oauth.state)
+	tokenHost := "collabgo"
+	authenticator := auth.NewAuthenticator(cfg.auth.oauth.config, cfg.auth.oauth.state, cfg.auth.token.secret, tokenHost, tokenHost)
+
 	app := &application{
 		config: cfg,
 		store:  store,

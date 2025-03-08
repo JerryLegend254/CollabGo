@@ -7,5 +7,7 @@ import (
 )
 
 func (app *application) pingHandler(c echo.Context) error {
-	return c.String(http.StatusOK, "Ok response gotten")
+	return app.jsonResponse(c, http.StatusOK, map[string]string{
+		"status": "ok",
+	})
 }

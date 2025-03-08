@@ -35,11 +35,17 @@ type dbConfig struct {
 
 type authConfig struct {
 	oauth oauthConfig
+	token tokenConfig
 }
 
 type oauthConfig struct {
 	config *oauth2.Config
 	state  string
+}
+
+type tokenConfig struct {
+	secret string
+	iss    string
 }
 
 var (
@@ -76,7 +82,7 @@ func (app *application) mount() http.Handler {
 
 	r := e.Group("/v1")
 
-	r.GET("/ping", app.pingHandler)
+	r.GET("/ping", app.pingHandler, app.AuthTokenMiddleware)
 	r.GET("/ws", hello)
 
 	authentication := r.Group("/authentication")
